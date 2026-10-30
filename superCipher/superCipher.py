@@ -1,13 +1,3 @@
-# 1) Add code for the Caesar Cipher to "SuperCipher".
-# There should be code for both encrypt and decrypt mode. [group submission]
-#
-# 2) Run the Caesar Cipher functions in "SuperCipher".
-# Submit sample runs in both encrypt and decrypt mode. [group submission]
-#
-# 3) Use the Caesar Hack to conduct a brute-force attack on a fairly long encrypted message.
-# Indicate the key number that was needed to hack the message.
-# Show a run of this code.  [individual submission]
-
 # ##################################################
 # Programmer: Jonathan Zderad with some iterative
 #    help from ChatGPT
@@ -18,11 +8,7 @@
 # selection of ciphers.
 # ##################################################
 import tkinter as tk
-# if number is mod 52 then it should show just the amount of letters, but that means if y + 1 = 122
-# then mod 52 = 18. BUT what if I did letter - 65 to give just the starting range at 0. so for example,
-# if I did F + 2 - 65 = 72 - 65 = 7 mod 52. Well what happens if t + 15 - 65 = 131 - 65 = 66 mod 52
-# that then = 14, which then let me check what that would mean in my system, this is wrong. Maybe have
-# a check to see if number goes above 122, if it does then subtract 5 and 6
+import math
 
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
@@ -38,6 +24,46 @@ def caesar(astring, akey):
         index = ALPHABET.index(char)
         nstring += ALPHABET[(index + akey) % 52]
     return nstring
+
+def encryptTransposition(key, message):
+   # Each string in ciphertext represents a column in the grid:
+   ciphertext = [''] * key
+   # Loop through each column in ciphertext:
+   for column in range(key):
+      currentIndex = column
+      # Keep looping until currentIndex goes past the message length:
+      while currentIndex < len(message):
+         # Place the character at currentIndex in message at the
+         # end of the current column in the ciphertext list:
+         ciphertext[column] += message[currentIndex]
+         # Move currentIndex over:
+         currentIndex += key
+         # Convert the ciphertext list into a single string value and return it:
+   return ''.join(ciphertext)
+
+def decryptTransposition(key, message):
+   # The transposition decrypt function will simulate the "columns" and
+   # "rows" of the grid that the plaintext is written on by using a list
+   # of strings. First, we need to calculate a few values.
+   # The number of "columns" in our transposition grid:
+   numOfColumns = int(math.ceil(len(message) / float(key)))
+   numOfRows = key
+   # The number of "shaded boxes" in the last "column" of the grid:
+   numOfShadedBoxes = (numOfColumns * numOfRows) - len(message)
+   # Each string in plaintext represents a column in the grid:
+   plaintext = [''] * numOfColumns
+   column = 0
+   row = 0
+   for symbol in message:
+      plaintext[column] += symbol
+      column += 1  # Point to the next column.
+      # If there are no more columns OR we're at a shaded box, go back
+      # to the first column and the next row:
+      if (column == numOfColumns) or (column == numOfColumns - 1 and
+                                row >= numOfRows - numOfShadedBoxes):
+         column = 0
+         row += 1
+   return ''.join(plaintext)
 
 def make_options():
     # Radio button options
@@ -79,7 +105,7 @@ def process_input():
     # Get the buttons and boxes
     choice = selected_option.get()
     mode = selected_mode.get()
-    key = key_entry.get()
+    key = int(key_entry.get())
     user_input = input_entry.get()
     output_text.delete("1.0", tk.END)
     if choice == "Reverse":
@@ -89,6 +115,11 @@ def process_input():
             result = caesar(user_input, int(key))
         elif mode == "Decrypt":
             result = caesar(user_input, int(key) - (2 * int(key)))
+    elif choice == "Transposition":
+        if mode == "Encrypt":
+            result = encryptTransposition(key, user_input)
+        elif mode == "Decrypt":
+            result = decryptTransposition(key, user_input)
     else:
         result = "Does not work."
     # Display the results
@@ -99,40 +130,41 @@ def process_input():
         f"Message:\n{result}"
     )
 
-#Mainline of Program
-#make root for window
-root = tk.Tk()
-root.title("Cipher Tester")
+if __name__ == "__main__":
+    #Mainline of Program
+    #make root for window
+    root = tk.Tk()
+    root.title("Cipher Tester")
 
-#make option subwindow
-selected_option = tk.StringVar(value="Reverse")
-tk.Label(root, text="Cipher:").pack(anchor="w", padx=10, pady=(10, 0))
-make_options()
+    #make option subwindow
+    selected_option = tk.StringVar(value="Reverse")
+    tk.Label(root, text="Cipher:").pack(anchor="w", padx=10, pady=(10, 0))
+    make_options()
 
-#make mode subwindow
-selected_mode = tk.StringVar(value="Encrypt")
-tk.Label(root, text="Mode:").pack(anchor="w", padx=10, pady=(10, 0))
-make_mode()
+    #make mode subwindow
+    selected_mode = tk.StringVar(value="Encrypt")
+    tk.Label(root, text="Mode:").pack(anchor="w", padx=10, pady=(10, 0))
+    make_mode()
 
-#Get Input Ready
-tk.Label(root, text="Input:").pack(anchor="w", padx=10, pady=(10, 0))
-input_entry = tk.Entry(root, width=40)
-input_entry.pack(padx=10, pady=5)
+    #Get Input Ready
+    tk.Label(root, text="Input:").pack(anchor="w", padx=10, pady=(10, 0))
+    input_entry = tk.Entry(root, width=40)
+    input_entry.pack(padx=10, pady=5)
 
-#Get Key Box Ready
-tk.Label(root, text="Key:").pack(anchor="w", padx=10, pady=(10, 0))
-key_entry = tk.Entry(root, width=40)
-key_entry.pack(padx=10, pady=5)
+    #Get Key Box Ready
+    tk.Label(root, text="Key:").pack(anchor="w", padx=10, pady=(10, 0))
+    key_entry = tk.Entry(root, width=40)
+    key_entry.pack(padx=10, pady=5)
 
-# Process Submit Button
-tk.Button(
-    root,
-    text="Submit",
-    command=process_input
-).pack(pady=10)
+    # Process Submit Button
+    tk.Button(
+        root,
+        text="Submit",
+        command=process_input
+    ).pack(pady=10)
 
-# Make Output Box
-tk.Label(root, text="Output:").pack(anchor="w", padx=10)
-output_text = tk.Text(root, width=50, height=5)
-output_text.pack(padx=10, pady=5)
-root.mainloop()
+    # Make Output Box
+    tk.Label(root, text="Output:").pack(anchor="w", padx=10)
+    output_text = tk.Text(root, width=50, height=5)
+    output_text.pack(padx=10, pady=5)
+    root.mainloop()
