@@ -11,6 +11,8 @@ import tkinter as tk
 import math
 
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()-=[];,._+{}|:<>? "
+symLen = len(SYMBOLS)
 
 def reverse(astring, akey):
     return astring[::-1]
@@ -65,6 +67,40 @@ def decryptTransposition(key, message):
          row += 1
    return ''.join(plaintext)
 
+def encryptAffine(key, message):
+    keyList = key.split(' ')
+    s = len(message)
+    cipherText = ""
+
+    for i in range(s):
+        posPlain = SYMBOLS.find(message[i])
+        posCipher = (posPlain * int(keyList[0]) + int(keyList[1])) % symLen
+        if message[i] == ' ':
+            cipherText += ' '
+        else:
+            cipherText += SYMBOLS[posCipher]
+
+    c = 0
+    d = 0
+    for i in range(symLen):
+        if (i * int(keyList[0])) % symLen == 1:
+            c = i
+    d = (-1) * c * int(keyList[1]) % symLen
+    decKeys = [c, d]
+    return cipherText, decKeys
+
+def decryptAffine(key, cipherText):
+    plainText = ""
+    c, d = key.split(' ')
+    for i in range(len(cipherText)):
+        if cipherText[i] == ' ':
+            plainText += ' '
+        else:
+            posCipher = SYMBOLS.find(cipherText[i])
+            posPlain = (posCipher * c + d) % symLen
+            plainText += SYMBOLS[posPlain]
+    return plainText
+
 def make_options():
     # Radio button options
     options = [
@@ -105,7 +141,7 @@ def process_input():
     # Get the buttons and boxes
     choice = selected_option.get()
     mode = selected_mode.get()
-    key = int(key_entry.get())
+    key = key_entry.get()
     user_input = input_entry.get()
     output_text.delete("1.0", tk.END)
     if choice == "Reverse":
@@ -117,9 +153,15 @@ def process_input():
             result = caesar(user_input, int(key) - (2 * int(key)))
     elif choice == "Transposition":
         if mode == "Encrypt":
-            result = encryptTransposition(key, user_input)
+            result = encryptTransposition(int(key), user_input)
         elif mode == "Decrypt":
-            result = decryptTransposition(key, user_input)
+            result = decryptTransposition(int(key), user_input)
+    elif choice == "Affine":
+        if mode == "Encrypt":
+            message, keys = encryptAffine(key, user_input)
+            result = f"{message}\nThe Decryption Keys are: {keys[0]} & {keys[1]}"
+        elif mode == "Decrypt":
+            result = decryptAffine(key, user_input)
     else:
         result = "Does not work."
     # Display the results

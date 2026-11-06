@@ -48,7 +48,7 @@ def decryptMessage(key, message):
    return ''.join(plaintext)
 
 def loadDictionary():
-   dictionaryFile = open('dictionary.txt')
+   dictionaryFile = open('../dictionary.txt')
    englishWords = {}
    for word in dictionaryFile.read().split('\n'):
       englishWords[word] = None
